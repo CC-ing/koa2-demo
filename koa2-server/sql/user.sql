@@ -4,3 +4,6 @@ CREATE TABLE  IF NOT EXISTS  `user` (
   `name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+-- alter

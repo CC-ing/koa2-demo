@@ -6,9 +6,9 @@ import axios, { AxiosRequestConfig, AxiosResponse, AxiosInstance } from "axios";
 // }
 
 class Api {
-  baseURL: string
+  baseURL: string;
   constructor() {
-    this.baseURL = 'http://localhost:3000'
+    this.baseURL = "http://localhost:3000";
   }
 
   configInterceptors(instance: AxiosInstance, url?: string) {
@@ -35,21 +35,28 @@ class Api {
     );
   }
   request(config: AxiosRequestConfig) {
-    const instance = axios.create()
-    this.configInterceptors(instance)
-    return instance({ ...config, baseURL: this.baseURL })
+    const instance = axios.create();
+    this.configInterceptors(instance);
+    return instance({ ...config, baseURL: this.baseURL });
   }
-  get(config: AxiosRequestConfig) {
-    return this.request({
-      ...config,
-      method: 'GET'
-    })
+  get(config: AxiosRequestConfig | string) {
+    if (typeof config === "string") {
+      return this.request({
+        url: config,
+        method: "GET",
+      });
+    } else {
+      return this.request({
+        ...config,
+        method: "GET",
+      });
+    }
   }
   post(config: AxiosRequestConfig) {
     return this.request({
       ...config,
-      method: 'POST'
-    })
+      method: "POST",
+    });
   }
 }
 
