@@ -12,6 +12,7 @@ router.get('/bar', function (ctx, next) {
 })
 
 router.post('/login', usersControllers.login)
+router.post('/upload', usersControllers.upload)
 
 // router.post('/testify', function (ctx, next) {
 //   console.log('ctx', ctx.request.body);

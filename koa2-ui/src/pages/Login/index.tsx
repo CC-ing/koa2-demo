@@ -1,4 +1,4 @@
-import React, { FC, useState } from "react";
+import React, { ChangeEvent, ChangeEventHandler, FC, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { Form, Input, Button, message, Upload } from "antd";
 import {
@@ -10,19 +10,26 @@ import { AxiosResponse } from "axios";
 import "./index.less";
 import { axios } from "../../utils";
 
+// https://www.jb51.net/article/182078.htm
+
 const Login: FC = (props: any) => {
   let history = useHistory();
   let [imageUrl, setImageUrl] = useState(null);
   let [loading, setLoading] = useState<boolean>(false);
+  let [objUrl, setObjUrl] = useState<any>();
 
   const onFinish = async (values: any) => {
     try {
       // const res = await axios.post({"/login", values});
-      console.log('form', values);
-      
+      console.log("form", values);
+      const formData = {
+        name: values.name,
+        password: values.password,
+        avatar: values.avatar.fileList[0].thumbUrl,
+      };
       const res: AxiosResponse["data"] = await axios.post({
         url: "/login",
-        data: values,
+        data: formData,
       });
       console.log("propsprops", props, res);
       // if (res.code === 200) {
@@ -78,25 +85,21 @@ const Login: FC = (props: any) => {
     return isJpgOrPng && isLt2M;
   };
 
-  const handleChange = (info: any) => {
-    if (info.file.status === "uploading") {
-      setLoading(true);
-      return;
-    }
-    if (info.file.status === "done") {
-      // Get this url from response in real world.
-      getBase64(
-        info.file.originFileObj,
-        (imageUrl: any) => {
-          setLoading(false);
-          setImageUrl(imageUrl);
-        }
-        // this.setState({
-        //   imageUrl,
-        //   loading: false,
-        // })
-      );
-    }
+  const changeFile = (event: ChangeEvent<HTMLInputElement>) => {
+    console.log("0000000000", event.target.files);
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      console.log('reader.result', reader.result);
+      
+      setObjUrl(reader.result);
+    });
+    reader.readAsDataURL(file);
+    // axios.post({
+    //   url: "/upload",
+    //   method: "post",
+    //   data: {},
+    // });
   };
 
   return (
@@ -132,7 +135,7 @@ const Login: FC = (props: any) => {
             // showUploadList={false}
             // action="/upload.do"
             // beforeUpload={beforeUpload}
-            beforeUpload={(file, fileList)=>false}
+            beforeUpload={(file, fileList) => false}
             // onChange={handleChange}
           >
             {imageUrl ? (
@@ -142,6 +145,14 @@ const Login: FC = (props: any) => {
             )}
           </Upload>
         </Form.Item>
+        <input type="file" onChange={changeFile} />
+        {objUrl && (
+          <img
+            src={objUrl}
+            alt=""
+            style={{ width: "100px", height: "100px" }}
+          />
+        )}
 
         <Form.Item {...tailLayout}>
           <Button type="primary" htmlType="submit">
