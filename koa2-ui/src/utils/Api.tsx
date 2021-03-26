@@ -8,7 +8,7 @@ import axios, { AxiosRequestConfig, AxiosResponse, AxiosInstance } from "axios";
 class Api {
   baseURL: string;
   constructor() {
-    this.baseURL = "http://localhost:3000";
+    this.baseURL = process.env.REACT_APP_BASEURL;
   }
 
   configInterceptors(instance: AxiosInstance, url?: string) {

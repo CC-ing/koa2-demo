@@ -32,7 +32,7 @@ app.use(views(__dirname + '/views', {
 
 app.use(cors())
 
-app.use(koaJwt({ secret }).unless({ path: [/^\/login/] }));
+app.use(koaJwt({ secret }).unless({ path: [/^\//, /^\/public/, /^\/login/] }));
 
 // logger
 app.use(async (ctx, next) => {

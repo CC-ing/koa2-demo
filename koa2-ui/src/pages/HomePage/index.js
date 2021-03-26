@@ -1,6 +1,6 @@
 
 import React from 'react'
-import { Layout, Menu, Button } from 'antd';
+import { Layout, Menu, Avatar } from 'antd';
 import { Switch, Route } from 'react-router-dom'
 import {
     MenuUnfoldOutlined,
@@ -14,6 +14,7 @@ import './index.less'
 import Posts from '../Posts'
 import PostList from '../Posts/PostList'
 import PostItem from '../Posts/PostItem'
+import MyPost from '../Posts/MyPost'
 
 const { Header, Sider, Content } = Layout;
 const { SubMenu } = Menu;
@@ -21,6 +22,7 @@ const { SubMenu } = Menu;
 class HomePage extends React.Component {
     state = {
         collapsed: false,
+        userInfo: {}
     };
 
     toggle = () => {
@@ -30,8 +32,15 @@ class HomePage extends React.Component {
     };
 
     handleSelect = ({ key }) => {
-        console.log('this.props.history', key, this.props.history);
+        console.log('this.props.history', process);
         this.props.history.push(key)
+    }
+
+    componentDidMount() {
+        const userInfo = JSON.parse(localStorage.getItem('userInfo'))
+        this.setState({
+            userInfo
+        })
     }
 
     render() {
@@ -63,6 +72,7 @@ class HomePage extends React.Component {
                             },
                             onClick: this.toggle,
                         })}
+
                         {React.createElement(LogoutOutlined, {
                             style: {
                                 float: 'right',
@@ -76,6 +86,11 @@ class HomePage extends React.Component {
                                 this.props.history.push('/login')
                             }
                         })}
+                        <Avatar style={{
+                            float: 'right',
+                            marginTop: '16px',
+                            marginRight: '16px',
+                        }} src={`${process.env.REACT_APP_BASEURL}${this.state.userInfo.avatar}`} />
                     </Header>
                     <Content
                         className="site-layout-background"
@@ -87,6 +102,7 @@ class HomePage extends React.Component {
                     >
                         <Switch>
                             <Route path='/posts/list' component={PostList} />
+                            <Route path='/posts/myPost' component={MyPost} />
                             <Route path='/posts/:id' component={PostItem} />
                             <Route path='/posts' component={Posts} />
                         </Switch>

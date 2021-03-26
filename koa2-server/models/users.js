@@ -1,7 +1,6 @@
 const { insertData, findData, query } = require('../util/db-util')
 
 const insertUser = async (userInfo) => {
-    console.log('userInfo', userInfo);
     const result = insertData(['user', userInfo])
     return result
 }

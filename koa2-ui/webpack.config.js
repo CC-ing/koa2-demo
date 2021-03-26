@@ -1,7 +1,19 @@
 const path = require('path')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const webpack = require('webpack');
+const fs = require('fs')
 // const PluginProposalClassProperties= require('@babel/plugin-proposal-class-properties')
+
+let envValues = fs.readFileSync(path.resolve(__dirname, '.env'), 'utf-8')
+envValues = envValues.split('\r\n').reduce((pre, cur) => {
+    const keyValue = cur.split('=')
+    Object.assign(pre, {
+        [keyValue[0]]: JSON.stringify(keyValue[1])
+    })
+    return pre
+}, {})
+console.log(envValues);
 
 module.exports = {
     mode: 'development',
@@ -93,6 +105,11 @@ module.exports = {
         //     chunkFilename: '[id].css',
         //     ignoreOrder: false, // 忽略有关顺序冲突的警告
         // }),
+        new webpack.DefinePlugin({
+            process: {
+                env: envValues
+            }
+        }),
         new HtmlWebpackPlugin({
             template: './public/index.html',
             path: path.resolve(__dirname, 'dist'),

@@ -1,6 +1,6 @@
 import React, { ChangeEvent, ChangeEventHandler, FC, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { Form, Input, Button, message, Upload } from "antd";
+import { Form, Input, Button, message, Upload, Progress } from "antd";
 import {
   UploadOutlined,
   LoadingOutlined,
@@ -9,55 +9,49 @@ import {
 import { AxiosResponse } from "axios";
 import "./index.less";
 import { axios } from "../../utils";
+import { UploadChangeParam } from "antd/lib/upload";
 
 // https://www.jb51.net/article/182078.htm
 
 const Login: FC = (props: any) => {
   let history = useHistory();
   let [imageUrl, setImageUrl] = useState(null);
+  let [imageName, setImageName] = useState<string>("");
   let [loading, setLoading] = useState<boolean>(false);
-  let [objUrl, setObjUrl] = useState<any>();
 
   const onFinish = async (values: any) => {
     try {
-      // const res = await axios.post({"/login", values});
-      console.log("form", values);
       const formData = {
         name: values.name,
         password: values.password,
-        avatar: values.avatar.fileList[0].thumbUrl,
+        avatar: {
+          imageName,
+          imageUrl,
+        },
       };
       const res: AxiosResponse["data"] = await axios.post({
         url: "/login",
         data: formData,
       });
       console.log("propsprops", props, res);
-      // if (res.code === 200) {
-      //   localStorage.setItem("token", res.token);
-      //   localStorage.setItem("userInfo", JSON.stringify(res.user));
-      //   localStorage.setItem("isLogin", "true");
-      //   if (props.location.state && props.location.state.from) {
-      //     console.log("login", props.location.state.from);
-      //     history.push(props.location.state.from);
-      //   } else {
-      //     history.push("/");
-      //   }
-      // } else {
-      //   message.error(res.msg);
-      // }
+      if (res.code === 200) {
+        localStorage.setItem("token", res.token);
+        localStorage.setItem("userInfo", JSON.stringify(res.user));
+        localStorage.setItem("isLogin", "true");
+        if (props.location.state && props.location.state.from) {
+          console.log("login", props.location.state.from);
+          history.push(props.location.state.from);
+        } else {
+          history.push("/");
+        }
+      } else {
+        message.error(res.msg);
+      }
     } catch (error) {}
   };
 
   const onFinishFailed = (errorInfo: any) => {
     console.log("Failed:", errorInfo);
-  };
-
-  const layout = {
-    labelCol: { span: 8 },
-    wrapperCol: { span: 16 },
-  };
-  const tailLayout = {
-    wrapperCol: { offset: 8, span: 16 },
   };
 
   const uploadButton = (
@@ -67,40 +61,46 @@ const Login: FC = (props: any) => {
     </div>
   );
 
-  const getBase64 = (img: any, callback: any) => {
-    const reader = new FileReader();
-    reader.addEventListener("load", () => callback(reader.result));
-    reader.readAsDataURL(img);
+  const handleUpload = (info: UploadChangeParam) => {
+    if (info.file.status == "uploading") {
+      setLoading(true);
+    } else {
+      setLoading(false);
+      setImageName(info.file.name);
+
+      const reader = new FileReader();
+      reader.addEventListener("load", () => {
+        // setImageUrl(reader.result);
+        const image = new Image();
+        image.addEventListener("load", () => {
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          const { width, height } = image;
+          console.log("---------", width, height);
+
+          canvas.width = 200;
+          canvas.height = 200;
+          ctx.clearRect(0, 0, 200, 200);
+          ctx.drawImage(image, 0, 0, 200, 200);
+          const canvasUrl = canvas.toDataURL();
+          setImageUrl(canvasUrl);
+        });
+
+        image.src = reader.result as string;
+      });
+      reader.readAsDataURL(info.file.originFileObj);
+    }
   };
 
-  const beforeUpload = (file: any) => {
-    const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
-    if (!isJpgOrPng) {
-      message.error("You can only upload JPG/PNG file!");
-    }
-    const isLt2M = file.size / 1024 / 1024 < 2;
-    if (!isLt2M) {
-      message.error("Image must smaller than 2MB!");
-    }
-    return isJpgOrPng && isLt2M;
+  const layout = {
+    labelCol: { span: 8 },
+    wrapperCol: { span: 16 },
   };
 
-  const changeFile = (event: ChangeEvent<HTMLInputElement>) => {
-    console.log("0000000000", event.target.files);
-    const file = event.target.files[0];
-    const reader = new FileReader();
-    reader.addEventListener("load", () => {
-      console.log('reader.result', reader.result);
-      
-      setObjUrl(reader.result);
-    });
-    reader.readAsDataURL(file);
-    // axios.post({
-    //   url: "/upload",
-    //   method: "post",
-    //   data: {},
-    // });
+  const tailLayout = {
+    wrapperCol: { offset: 8, span: 16 },
   };
+  console.log("imageUrl", imageUrl);
 
   return (
     <div className="login-wrap">
@@ -127,16 +127,12 @@ const Login: FC = (props: any) => {
           <Input.Password />
         </Form.Item>
 
-        <Form.Item label="头像" name="avatar" rules={[{ required: true }]}>
+        <Form.Item label="头像" name="avatar">
           <Upload
-            name="avatar"
             listType="picture-card"
             className="avatar-uploader"
-            // showUploadList={false}
-            // action="/upload.do"
-            // beforeUpload={beforeUpload}
-            beforeUpload={(file, fileList) => false}
-            // onChange={handleChange}
+            showUploadList={false}
+            onChange={handleUpload}
           >
             {imageUrl ? (
               <img src={imageUrl} alt="avatar" style={{ width: "100%" }} />
@@ -145,14 +141,6 @@ const Login: FC = (props: any) => {
             )}
           </Upload>
         </Form.Item>
-        <input type="file" onChange={changeFile} />
-        {objUrl && (
-          <img
-            src={objUrl}
-            alt=""
-            style={{ width: "100px", height: "100px" }}
-          />
-        )}
 
         <Form.Item {...tailLayout}>
           <Button type="primary" htmlType="submit">
